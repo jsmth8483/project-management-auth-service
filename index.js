@@ -1,11 +1,14 @@
 const express = require('express');
 const connectDatabase = require('./db');
+const cors = require('cors');
 const authRouter = require('./routes/auth');
 const app = express();
 
 const PORT = 5001;
 
 const db = connectDatabase();
+
+app.use('*', cors());
 
 const server = app.listen(PORT, () =>
 	console.log(`Auth Service running on port ${PORT}`)

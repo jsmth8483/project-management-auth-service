@@ -8,7 +8,7 @@ const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET;
 
 router.post('/register', async (req, res, next) => {
-	const { email, password } = req.body;
+	const { fullName, email, password } = req.body;
 
 	const existingUser = await User.findOne({ email: email }).exec();
 	if (existingUser) {
@@ -26,22 +26,24 @@ router.post('/register', async (req, res, next) => {
 		try {
 			const salt = await bcrypt.genSalt(10);
 			const hash = await bcrypt.hash(password, salt);
-			await User.create({ email, password: hash }).then((user) => {
-				const maxAge = 3 * 60 * 60;
-				const token = jwt.sign(
-					{ id: user._id, email, role: user.role },
-					JWT_SECRET,
-					{ expiresIn: maxAge }
-				);
-				res.cookie('jwt', token, {
-					httpOnly: true,
-					maxAge: maxAge * 1000,
-				});
-				res.status(201).json({
-					message: 'User successfully created.',
-					user: user._id,
-				});
-			});
+			await User.create({ name: fullName, email, password: hash }).then(
+				(user) => {
+					const maxAge = 3 * 60 * 60;
+					const token = jwt.sign(
+						{ id: user._id, email, role: user.role },
+						JWT_SECRET,
+						{ expiresIn: maxAge }
+					);
+					res.cookie('jwt', token, {
+						httpOnly: true,
+						maxAge: maxAge * 1000,
+					});
+					res.status(201).json({
+						message: 'User successfully created.',
+						user: user._id,
+					});
+				}
+			);
 		} catch (err) {
 			console.log(err.message);
 			res.status(401).json({
