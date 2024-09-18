@@ -14,7 +14,7 @@ router.post('/register', async (req, res, next) => {
 		});
 	} else {
 		if (password.length < 6) {
-			res.status(400).json({
+			return res.status(400).json({
 				message:
 					'Password does not meet required length of 6 characters',
 			});
@@ -35,6 +35,38 @@ router.post('/register', async (req, res, next) => {
 				message: 'User registration failed',
 			});
 		}
+	}
+});
+
+router.post('/login', async (req, res, next) => {
+	const { email, password } = req.body;
+
+	if (!email || !password) {
+		return res.status(400).json({
+			message: 'Email or password missing',
+		});
+	}
+
+	try {
+		const user = await User.findOne({ email: email }).exec();
+		if (user) {
+			let result = await bcrypt.compare(password, user.password);
+			if (!result) {
+				console.error('Passwords do not match');
+				return res
+					.status(401)
+					.json({ message: 'Email or password is incorrect' });
+			}
+			console.info('User successfully logged in');
+			res.status(200).json('Successfully logged in');
+		} else {
+			console.error('User not found');
+			return res
+				.status(404)
+				.json({ message: 'Email or password incorrect' });
+		}
+	} catch (err) {
+		res.status(500).json({ message: 'Internal Server Error' });
 	}
 });
 
