@@ -2,7 +2,12 @@ const express = require('express');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { generateJWT, clearTokens } = require('../utils/tokenUtil');
+const {
+	generateJWT,
+	clearTokens,
+	refreshAccessToken,
+} = require('../utils/tokenUtil');
+const { isAuthenticated, generateAuthTokens } = require('../middlewares/auth');
 const app = express();
 const router = express.Router();
 
@@ -44,49 +49,47 @@ router.post('/register', async (req, res, next) => {
 	}
 });
 
-router.post('/login', async (req, res, next) => {
-	const { email, password } = req.body;
+router.post(
+	'/login',
+	async (req, res, next) => {
+		const { email, password } = req.body;
 
-	if (!email || !password) {
-		return res.status(400).json({
-			message: 'Email or password missing',
-		});
-	}
-
-	try {
-		const user = await User.findOne({ email: email }).exec();
-		if (user) {
-			let result = await bcrypt.compare(password, user.password);
-			if (!result) {
-				console.error('Passwords do not match');
-				return res
-					.status(401)
-					.json({ message: 'Email or password is incorrect' });
-			}
-			const maxAge = 3 * 60 * 60;
-			const token = generateJWT(user._id, JWT_SECRET, maxAge);
-			res.cookie('jwt', token, {
-				httpOnly: true,
-				maxAge: maxAge * 1000,
-				secure: true,
+		if (!email || !password) {
+			return res.status(400).json({
+				message: 'Email or password missing',
 			});
-			console.info('User successfully logged in');
-			res.status(201).json({ message: 'Successfully logged in' });
-		} else {
-			console.error('User not found');
-			return res
-				.status(404)
-				.json({ message: 'Email or password incorrect' });
 		}
-	} catch (err) {
-		console.log(`An error occurred: ${err.message}`);
-		res.status(500).json({ message: 'Internal Server Error' });
-	}
-});
 
-router.post('/logout', async (req, res, next) => {
+		try {
+			const user = await User.findOne({ email: email }).exec();
+			if (user) {
+				let result = await bcrypt.compare(password, user.password);
+				if (!result) {
+					console.error('Passwords do not match');
+					return res
+						.status(401)
+						.json({ message: 'Email or password is incorrect' });
+				}
+				console.info('User successfully logged in');
+				next();
+			} else {
+				console.error('User not found');
+				const error = createError.Unauthorized('User not found');
+				throw error;
+			}
+		} catch (err) {
+			console.log(`An error occurred: ${err.message}`);
+			res.status(500).json({ message: 'Internal Server Error' });
+		}
+	},
+	generateAuthTokens
+);
+
+router.post('/logout', isAuthenticated, async (req, res, next) => {
 	clearTokens(req, res, next);
 	res.status(204).json({ message: 'User as been logged out' });
 });
+
+router.post('/refresh', refreshAccessToken);
 
 module.exports = router;

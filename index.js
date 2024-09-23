@@ -2,6 +2,8 @@ const express = require('express');
 const connectDatabase = require('./db');
 const cors = require('cors');
 const authRouter = require('./routes/auth');
+const cookieParser = require('cookie-parser');
+
 const app = express();
 
 const PORT = 5001;
@@ -9,6 +11,7 @@ const PORT = 5001;
 const db = connectDatabase();
 
 app.use('*', cors());
+app.use(cookieParser(process.env.COOKIE_SECRET));
 
 const server = app.listen(PORT, () =>
 	console.log(`Auth Service running on port ${PORT}`)
