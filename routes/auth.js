@@ -69,7 +69,6 @@ router.post('/login', async (req, res, next) => {
 				httpOnly: true,
 				maxAge: maxAge * 1000,
 				secure: true,
-				signed: true,
 			});
 			console.info('User successfully logged in');
 			res.status(201).json('Successfully logged in');
@@ -80,6 +79,7 @@ router.post('/login', async (req, res, next) => {
 				.json({ message: 'Email or password incorrect' });
 		}
 	} catch (err) {
+		console.log(`An error occurred: ${err.message}`);
 		res.status(500).json({ message: 'Internal Server Error' });
 	}
 });
