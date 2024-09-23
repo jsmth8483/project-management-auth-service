@@ -6,11 +6,10 @@ const generateJWT = (userId, secret, maxAge) => {
 	return jwt.sign({ userId }, secret, { expiresIn: maxAge });
 };
 
-const clearTokens = async (req, res) => {
-	res.clearCookie('refreshToken', {
+const clearTokens = async (req, res, next) => {
+	res.clearCookie('jwt', {
 		httpOnly: true,
 		secure: !dev,
-		signed: true,
 	});
 };
 

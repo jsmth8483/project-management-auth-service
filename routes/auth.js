@@ -2,7 +2,7 @@ const express = require('express');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { generateJWT } = require('../utils/tokenUtil');
+const { generateJWT, clearTokens } = require('../utils/tokenUtil');
 const app = express();
 const router = express.Router();
 
@@ -71,7 +71,7 @@ router.post('/login', async (req, res, next) => {
 				secure: true,
 			});
 			console.info('User successfully logged in');
-			res.status(201).json('Successfully logged in');
+			res.status(201).json({ message: 'Successfully logged in' });
 		} else {
 			console.error('User not found');
 			return res
@@ -82,6 +82,11 @@ router.post('/login', async (req, res, next) => {
 		console.log(`An error occurred: ${err.message}`);
 		res.status(500).json({ message: 'Internal Server Error' });
 	}
+});
+
+router.post('/logout', async (req, res, next) => {
+	clearTokens(req, res, next);
+	res.status(204).json({ message: 'User as been logged out' });
 });
 
 module.exports = router;
