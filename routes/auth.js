@@ -2,6 +2,7 @@ const express = require('express');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { generateJWT } = require('../utils/tokenUtil');
 const app = express();
 const router = express.Router();
 
@@ -28,16 +29,6 @@ router.post('/register', async (req, res, next) => {
 			const hash = await bcrypt.hash(password, salt);
 			await User.create({ name: fullName, email, password: hash }).then(
 				(user) => {
-					const maxAge = 3 * 60 * 60;
-					const token = jwt.sign(
-						{ id: user._id, email, role: user.role },
-						JWT_SECRET,
-						{ expiresIn: maxAge }
-					);
-					res.cookie('jwt', token, {
-						httpOnly: true,
-						maxAge: maxAge * 1000,
-					});
 					res.status(201).json({
 						message: 'User successfully created.',
 						user: user._id,
@@ -73,14 +64,12 @@ router.post('/login', async (req, res, next) => {
 					.json({ message: 'Email or password is incorrect' });
 			}
 			const maxAge = 3 * 60 * 60;
-			const token = jwt.sign(
-				{ id: user._id, email, role: user.role },
-				JWT_SECRET,
-				{ expiresIn: maxAge }
-			);
+			const token = generateJWT(user._id, JWT_SECRET, maxAge);
 			res.cookie('jwt', token, {
 				httpOnly: true,
 				maxAge: maxAge * 1000,
+				secure: true,
+				signed: true,
 			});
 			console.info('User successfully logged in');
 			res.status(201).json('Successfully logged in');
