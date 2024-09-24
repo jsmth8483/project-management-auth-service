@@ -71,6 +71,7 @@ router.post(
 						.json({ message: 'Email or password is incorrect' });
 				}
 				console.info('User successfully logged in');
+				req.userId = user._id;
 				next();
 			} else {
 				console.error('User not found');

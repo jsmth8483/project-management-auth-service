@@ -17,16 +17,16 @@ const dev = NODE_ENV === 'development';
 const generateAuthTokens = async (req, res, next) => {
 	try {
 		const { userId } = req;
-		const user = User.findOne({ _id: userId });
+		const user = await User.findOne({ _id: userId }).exec();
 		if (user) {
 			const refreshToken = generateJWT(
-				userId,
+				user._id,
 				REFRESH_TOKEN_SECRET,
 				REFRESH_TOKEN_TTL
 			);
 
 			const accessToken = generateJWT(
-				userId,
+				user._id,
 				ACCESS_TOKEN_SECRET,
 				ACCESS_TOKEN_TTL
 			);
@@ -41,10 +41,9 @@ const generateAuthTokens = async (req, res, next) => {
 			const accessTokenExpires = new Date(
 				Date.now() + ms(ACCESS_TOKEN_TTL)
 			);
-
 			return res
 				.status(200)
-				.json({ userId, accessToken, accessTokenExpires });
+				.json({ user: user._id, accessToken, accessTokenExpires });
 		} else {
 			throw new Error('Invalid userId');
 		}
