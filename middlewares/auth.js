@@ -33,8 +33,9 @@ const generateAuthTokens = async (req, res, next) => {
 
 			res.cookie('refreshToken', refreshToken, {
 				httpOnly: true,
-				secure: !dev,
+				secure: true,
 				signed: true,
+				sameSite: 'None',
 				expires: new Date(Date.now() + ms(REFRESH_TOKEN_TTL)),
 			});
 

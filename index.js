@@ -4,13 +4,25 @@ const cors = require('cors');
 const authRouter = require('./routes/auth');
 const cookieParser = require('cookie-parser');
 
+const dev = process.env.NODE_ENV === 'development';
+
 const app = express();
 
 const PORT = 5001;
 
 const db = connectDatabase();
 
-app.use('*', cors());
+if (dev) {
+	app.use(
+		'*',
+		cors({
+			origin: ['http://localhost:5173', 'http://localhost:5001'],
+			optionsSuccessStatus: 200,
+			credentials: true,
+		})
+	);
+}
+
 app.use(cookieParser(process.env.COOKIE_SECRET));
 
 const server = app.listen(PORT, () =>
