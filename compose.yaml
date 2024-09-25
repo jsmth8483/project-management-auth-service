@@ -1,0 +1,15 @@
+services:
+    pm-mongodb:
+        image: mongodb/mongodb-community-server:latest
+        ports:
+            - '27017:27017'
+
+    pm-auth-service:
+        build:
+            context: .
+        environment:
+            NODE_ENV: production
+        ports:
+            - 5001:5001
+        env_file:
+            - .env.production.local

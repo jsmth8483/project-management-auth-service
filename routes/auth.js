@@ -1,17 +1,12 @@
 const express = require('express');
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const {
-	generateJWT,
-	clearTokens,
-	refreshAccessToken,
-} = require('../utils/tokenUtil');
+const createError = require('http-errors');
+
+const { clearTokens, refreshAccessToken } = require('../utils/tokenUtil');
 const { isAuthenticated, generateAuthTokens } = require('../middlewares/auth');
 const app = express();
 const router = express.Router();
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 router.post('/register', async (req, res, next) => {
 	const { fullName, email, password } = req.body;
